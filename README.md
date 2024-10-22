@@ -295,3 +295,26 @@ Crear un pipeline ETL en Airflow con datos aleatorios y almacenamiento en AWS S3
 Configurar la base de datos utilizando MySQL.
 Siguiendo estos pasos, deberías poder configurar y ejecutar Apache Airflow en Windows utilizando Docker, generar una clave Fernet, configurar la base de datos, crear un pipeline de datos con datos aleatorios generados con Faker, integrar Apache Kafka para un pipeline ETL, y almacenar los resultados en AWS S3.
 
+
+
+
+     
+
+
+    
+
+
+
+
+     
+
+
+  
+ 
+
+
+
+Crear un pipeline ETL en Airflow con datos aleatorios y almacenamiento en AWS S3.
+Configurar la base de datos utilizando MySQL.
+Siguiendo estos pasos, deberías poder configurar y ejecutar Apache Airflow en Windows utilizando Docker, generar una clave Fernet, configurar la base de datos, crear un pipeline de datos con datos aleatorios generados con Faker, integrar Apache Kafka para un pipeline ETL, y almacenar los resultados en AWS S3.
+
