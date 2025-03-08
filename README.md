@@ -1,41 +1,50 @@
-Este README proporciona una guía paso a paso para configurar Apache Airflow en Windows utilizando Docker, incluyendo la generación de una clave Fernet, la configuración de la base de datos MySQL, la creación de un pipeline de datos con datos aleatorios generados con Faker, la integración con Apache Kafka para un pipeline ETL, y el almacenamiento de los resultados en AWS S3.
+This README provides a step-by-step guide to setting up Apache Airflow on Windows using Docker, including generating a Fernet key, configuring a MySQL database, creating a data pipeline with random data generated using Faker, integrating with Apache Kafka for an ETL pipeline, and storing the results in AWS S3.
 
-Prerrequisitos
-Docker Desktop instalado en Windows.
-Python instalado en tu sistema.
-Conexión a Internet para descargar las imágenes de Docker y las bibliotecas necesarias.
-Una cuenta de AWS con permisos para acceder a S3.
-AWS CLI instalado y configurado.
-Paso 1: Instalar Docker Desktop
-Descarga e instala Docker Desktop desde la página oficial de Docker.
-Asegúrate de que Docker Desktop esté en ejecución.
-Paso 2: Generar una clave Fernet
-La clave Fernet se utiliza para encriptar y desencriptar datos sensibles en Apache Airflow.
+Prerequisites
+Docker Desktop installed on Windows.
 
-Instalar la biblioteca cryptography:
+Python installed on your system.
+
+Internet connection to download Docker images and necessary libraries.
+
+An AWS account with permissions to access S3.
+
+AWS CLI installed and configured.
+
+Step 1: Install Docker Desktop
+Download and install Docker Desktop from the official Docker website. Ensure that Docker Desktop is running.
+
+Step 2: Generate a Fernet Key
+The Fernet key is used to encrypt and decrypt sensitive data in Apache Airflow.
+
+Install the cryptography library:
 
 sh
+Copy
 pip install cryptography
-Crear un script para generar la clave Fernet:
+Create a script to generate the Fernet key:
 
-Crea un archivo llamado generate_fernet_key.py con el siguiente contenido:
+Create a file named generate_fernet_key.py with the following content:
 
 python
+Copy
 from cryptography.fernet import Fernet
 
-# Generar una clave Fernet
+# Generate a Fernet key
 fernet_key = Fernet.generate_key()
-print(fernet_key.decode())  # Imprimir la clave en formato legible
-Ejecutar el script:
+print(fernet_key.decode())  # Print the key in a readable format
+Run the script:
 
 sh
+Copy
 python generate_fernet_key.py
-Esto imprimirá una clave Fernet en la terminal. Guarda esta clave, ya que la necesitarás para configurar Airflow.
+This will print a Fernet key in the terminal. Save this key, as you will need it to configure Airflow.
 
-Paso 3: Configurar Docker Compose para Airflow, Kafka y MySQL
-Crear un archivo docker-compose.yml en el directorio de tu proyecto con el siguiente contenido:
+Step 3: Configure Docker Compose for Airflow, Kafka, and MySQL
+Create a docker-compose.yml file in your project directory with the following content:
 
 yaml
+Copy
 version: '3'
 services:
   mysql:
@@ -105,27 +114,30 @@ services:
 
 volumes:
   mysql_data:
-Reemplaza 'YOUR_FERNET_KEY', 'YOUR_AWS_ACCESS_KEY_ID' y 'YOUR_AWS_SECRET_ACCESS_KEY' con tus credenciales de AWS y la clave Fernet generada en el paso anterior.
+Replace 'YOUR_FERNET_KEY', 'YOUR_AWS_ACCESS_KEY_ID', and 'YOUR_AWS_SECRET_ACCESS_KEY' with your AWS credentials and the Fernet key generated in the previous step.
 
-Paso 4: Iniciar los servicios de Airflow, Kafka y MySQL
-Iniciar los servicios de Airflow, Kafka y MySQL utilizando Docker Compose:
+Step 4: Start Airflow, Kafka, and MySQL Services
+Start the Airflow, Kafka, and MySQL services using Docker Compose:
 
 sh
+Copy
 docker-compose up -d
-Acceder a la interfaz web de Airflow:
+Access the Airflow web interface:
 
-Abre tu navegador y ve a http://localhost:8080 para acceder a la interfaz web de Airflow.
+Open your browser and navigate to http://localhost:8080 to access the Airflow web interface.
 
-Paso 5: Crear un pipeline ETL en Airflow con datos aleatorios y almacenamiento en AWS S3
-Instalar las bibliotecas necesarias:
+Step 5: Create an ETL Pipeline in Airflow with Random Data and Store in AWS S3
+Install the necessary libraries:
 
 sh
+Copy
 pip install faker boto3 kafka-python mysql-connector-python
-Crear un script para generar y cargar datos aleatorios en MySQL:
+Create a script to generate and load random data into MySQL:
 
-Crea un archivo llamado generate_and_load_data.py con el siguiente contenido:
+Create a file named generate_and_load_data.py with the following content:
 
 python
+Copy
 from faker import Faker
 import mysql.connector
 
@@ -137,38 +149,40 @@ def generate_and_load_data():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS customers (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            nombre VARCHAR(255),
-            apellido VARCHAR(255),
-            direccion TEXT,
-            telefono VARCHAR(20),
-            caja_ahorro_pesos DECIMAL(10, 2),
-            caja_ahorro_dolares DECIMAL(10, 2)
+            first_name VARCHAR(255),
+            last_name VARCHAR(255),
+            address TEXT,
+            phone_number VARCHAR(20),
+            savings_pesos DECIMAL(10, 2),
+            savings_dollars DECIMAL(10, 2)
         );
     """)
     for _ in range(100):
-        nombre = fake.first_name()
-        apellido = fake.last_name()
-        direccion = fake.address()
-        telefono = fake.phone_number()
-        caja_ahorro_pesos = fake.pydecimal(left_digits=5, right_digits=2, positive=True)
-        caja_ahorro_dolares = fake.pydecimal(left_digits=5, right_digits=2, positive=True)
-        cur.execute("INSERT INTO customers (nombre, apellido, direccion, telefono, caja_ahorro_pesos, caja_ahorro_dolares) VALUES (%s, %s, %s, %s, %s, %s);",
-                    (nombre, apellido, direccion, telefono, caja_ahorro_pesos, caja_ahorro_dolares))
+        first_name = fake.first_name()
+        last_name = fake.last_name()
+        address = fake.address()
+        phone_number = fake.phone_number()
+        savings_pesos = fake.pydecimal(left_digits=5, right_digits=2, positive=True)
+        savings_dollars = fake.pydecimal(left_digits=5, right_digits=2, positive=True)
+        cur.execute("INSERT INTO customers (first_name, last_name, address, phone_number, savings_pesos, savings_dollars) VALUES (%s, %s, %s, %s, %s, %s);",
+                    (first_name, last_name, address, phone_number, savings_pesos, savings_dollars))
     conn.commit()
     cur.close()
     conn.close()
 
 if __name__ == "__main__":
     generate_and_load_data()
-Ejecutar el script para generar y cargar datos:
+Run the script to generate and load data:
 
 sh
+Copy
 python generate_and_load_data.py
-Crear un archivo DAG:
+Create a DAG file:
 
-Crea un archivo DAG en el directorio dags (por ejemplo, dags/etl_dag.py) con el siguiente contenido:
+Create a DAG file in the dags directory (e.g., dags/etl_dag.py) with the following content:
 
 python
+Copy
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator
@@ -187,12 +201,12 @@ def produce_messages():
     for row in rows:
         message = {
             'id': row[0],
-            'nombre': row[1],
-            'apellido': row[2],
-            'direccion': row[3],
-            'telefono': row[4],
-            'caja_ahorro_pesos': float(row[5]),
-            'caja_ahorro_dolares': float(row[6])
+            'first_name': row[1],
+            'last_name': row[2],
+            'address': row[3],
+            'phone_number': row[4],
+            'savings_pesos': float(row[5]),
+            'savings_dollars': float(row[6])
         }
         producer.send('bank_customers', message)
     producer.flush()
@@ -206,17 +220,17 @@ def consume_and_store_data():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS processed_customers (
             id INT PRIMARY KEY,
-            nombre VARCHAR(255),
-            apellido VARCHAR(255),
-            direccion TEXT,
-            telefono VARCHAR(20),
-            caja_ahorro_pesos DECIMAL(10, 2),
-            caja_ahorro_dolares DECIMAL(10, 2)
+            first_name VARCHAR(255),
+            last_name VARCHAR(255),
+            address TEXT,
+            phone_number VARCHAR(20),
+            savings_pesos DECIMAL(10, 2),
+            savings_dollars DECIMAL(10, 2)
         );
     """)
     for message in consumer:
-        cur.execute("INSERT INTO processed_customers (id, nombre, apellido, direccion, telefono, caja_ahorro_pesos, caja_ahorro_dolares) VALUES (%s, %s, %s, %s, %s, %s, %s);",
-                    (message['id'], message['nombre'], message['apellido'], message['direccion'], message['telefono'], message['caja_ahorro_pesos'], message['caja_ahorro_dolares']))
+        cur.execute("INSERT INTO processed_customers (id, first_name, last_name, address, phone_number, savings_pesos, savings_dollars) VALUES (%s, %s, %s, %s, %s, %s, %s);",
+                    (message['id'], message['first_name'], message['last_name'], message['address'], message['phone_number'], message['savings_pesos'], message['savings_dollars']))
         conn.commit()
     cur.close()
     conn.close()
@@ -226,7 +240,7 @@ def upload_to_s3():
     cur = conn.cursor()
     cur.execute("SELECT * FROM processed_customers;")
     rows = cur.fetchall()
-    data = [dict(id=row[0], nombre=row[1], apellido=row[2], direccion=row[3], telefono=row[4], caja_ahorro_pesos=float(row[5]), caja_ahorro_dolares=float(row[6])) for row in rows]
+    data = [dict(id=row[0], first_name=row[1], last_name=row[2], address=row[3], phone_number=row[4], savings_pesos=float(row[5]), savings_dollars=float(row[6])) for row in rows]
     s3 = boto3.client('s3')
     s3.put_object(Bucket='YOUR_S3_BUCKET_NAME', Key='etl_output.json', Body=json.dumps(data))
     cur.close()
@@ -272,49 +286,36 @@ upload_task = PythonOperator(
 )
 
 start >> produce_task >> consume_task >> upload_task
-Reemplaza 'YOUR_S3_BUCKET_NAME' con el nombre de tu bucket de S3.
+Replace 'YOUR_S3_BUCKET_NAME' with the name of your S3 bucket.
 
-Verificar el DAG en la interfaz web de Airflow:
+Verify the DAG in the Airflow web interface:
 
-Ve a la interfaz web de Airflow y verifica que el DAG etl_dag aparece en la lista de DAGs.
+Go to the Airflow web interface and verify that the etl_dag appears in the list of DAGs.
 
-Paso 6: Configurar la base de datos
-La configuración de la base de datos ya está incluida en el archivo docker-compose.yml con el servicio mysql. Los detalles de conexión se especifican en las variables de entorno:
+Step 6: Configure the Database
+The database configuration is already included in the docker-compose.yml file with the mysql service. The connection details are specified in the environment variables:
 
-MYSQL_ROOT_PASSWORD: Contraseña del usuario root de MySQL (por defecto: root).
-MYSQL_DATABASE: Nombre de la base de datos (por defecto: bank).
-MYSQL_USER: Nombre de usuario de la base de datos (por defecto: airflow).
-MYSQL_PASSWORD: Contraseña de la base de datos (por defecto: airflow).
-Resumen
-Instalar Docker Desktop.
-Generar una clave Fernet utilizando la biblioteca cryptography.
-Configurar Docker Compose para Airflow, Kafka y MySQL.
-Iniciar los servicios de Airflow, Kafka y MySQL utilizando Docker Compose.
-Crear un script para generar y cargar datos aleatorios en MySQL.
-Crear un pipeline ETL en Airflow con datos aleatorios y almacenamiento en AWS S3.
-Configurar la base de datos utilizando MySQL.
-Siguiendo estos pasos, deberías poder configurar y ejecutar Apache Airflow en Windows utilizando Docker, generar una clave Fernet, configurar la base de datos, crear un pipeline de datos con datos aleatorios generados con Faker, integrar Apache Kafka para un pipeline ETL, y almacenar los resultados en AWS S3.
+MYSQL_ROOT_PASSWORD: MySQL root user password (default: root).
 
+MYSQL_DATABASE: Database name (default: bank).
 
+MYSQL_USER: Database username (default: airflow).
 
+MYSQL_PASSWORD: Database password (default: airflow).
 
-     
+Summary
+Install Docker Desktop.
 
+Generate a Fernet key using the cryptography library.
 
-    
+Configure Docker Compose for Airflow, Kafka, and MySQL.
 
+Start the Airflow, Kafka, and MySQL services using Docker Compose.
 
+Create a script to generate and load random data into MySQL.
 
+Create an ETL pipeline in Airflow with random data and store it in AWS S3.
 
-     
+Configure the database using MySQL.
 
-
-  
- 
-
-
-
-Crear un pipeline ETL en Airflow con datos aleatorios y almacenamiento en AWS S3.
-Configurar la base de datos utilizando MySQL.
-Siguiendo estos pasos, deberías poder configurar y ejecutar Apache Airflow en Windows utilizando Docker, generar una clave Fernet, configurar la base de datos, crear un pipeline de datos con datos aleatorios generados con Faker, integrar Apache Kafka para un pipeline ETL, y almacenar los resultados en AWS S3.
-
+By following these steps, you should be able to set up and run Apache Airflow on Windows using Docker, generate a Fernet key, configure the database, create a data pipeline with random data generated using Faker, integrate Apache Kafka for an ETL pipeline, and store the results in AWS S3.
